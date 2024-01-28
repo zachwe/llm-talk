@@ -7,6 +7,8 @@ import os
 import time
 import json
 
+openai_client = openai.Client(api_key=os.getenv("OPEN_AI_KEY"))
+
 class OpenAIService(AIService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -18,14 +20,10 @@ class OpenAIService(AIService):
         model = os.getenv("OPEN_AI_MODEL")
         if not model:
             model = "gpt-4"
-        response = openai.ChatCompletion.create(
-            api_type = 'openai',
-            api_version = '2020-11-07',
-            api_base = "https://api.openai.com/v1",
-            api_key = os.getenv("OPEN_AI_KEY"),
+        response = openai_client.chat.completions.create(
             model=model,
-            stream=stream,
-            messages=messages
+            messages=messages,
+            stream=stream
         )
 
         return response
@@ -34,17 +32,14 @@ class OpenAIService(AIService):
         self.logger.info("🖌️ generating openai image async for ", sentence)
         start = time.time()
 
-        image = openai.Image.create(
-            api_type = 'openai',
-            api_version = '2020-11-07',
-            api_base = "https://api.openai.com/v1",
-            api_key = os.getenv("OPEN_AI_KEY"),
+        image = openai_client.images.generate(
+            model="dall-e-3",
             prompt=f'{sentence} in the style of {self.image_style}',
             n=1,
             size=f"1024x1024",
         )
-        image_url = image["data"][0]["url"]
-        self.logger.info("🖌️ generated image from url", image["data"][0]["url"])
+        image_url = image.data[0].url
+        self.logger.info("🖌️ generated image from url", image.data[0].url)
         response = requests.get(image_url)
         self.logger.info("🖌️ got image from url", response)
         dalle_stream = io.BytesIO(response.content)

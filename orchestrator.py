@@ -82,12 +82,13 @@ class Orchestrator():
         # Do this all as one piece, at least for now
         out = ''
         for chunk in llm_response:
-            if len(chunk["choices"]) == 0:
+            if len(chunk.choices) == 0:
                 continue
-            if "content" in chunk["choices"][0]["delta"]:
-                if chunk["choices"][0]["delta"]["content"] != {}: #streaming a content chunk
-                    next_chunk = chunk["choices"][0]["delta"]["content"]
+            if chunk.choices[0].delta.content:
+                if chunk.choices[0].delta.content != {}: #streaming a content chunk
+                    next_chunk = chunk.choices[0].delta.content
                     out += next_chunk
+        print("HERE IS MY OUTPUT: ", out)
         return self.ai_tts_service.run_tts(out)
 
     def handle_llm_response(self, llm_response):
@@ -95,11 +96,11 @@ class Orchestrator():
         full_response = ''
         prompt_started = False
         for chunk in llm_response:
-            if len(chunk["choices"]) == 0:
+            if len(chunk.choices) == 0:
                 continue
-            if "content" in chunk["choices"][0]["delta"]:
-                if chunk["choices"][0]["delta"]["content"] != {}: #streaming a content chunk
-                    next_chunk = chunk["choices"][0]["delta"]["content"]
+            if chunk.choices[0].delta.content:
+                if chunk.choices[0].delta.content != {}: #streaming a content chunk
+                    next_chunk = chunk.choices[0].delta.content
                     out += next_chunk
                     full_response += next_chunk
 
@@ -193,7 +194,7 @@ class Orchestrator():
         msgs = [{"role": "system", "content": prompt}]
         start = time.time()
         img_response = self.ai_llm_service.run_llm(msgs, stream = False)
-        image_prompt = img_response['choices'][0]['message']['content']
+        image_prompt = img_response.choices[0].message.content
         # It comes back wrapped in quotes for some reason
         image_prompt = re.sub(r'^"', '', image_prompt)
         image_prompt = re.sub(r'"$', '', image_prompt)
